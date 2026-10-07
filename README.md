@@ -23,6 +23,8 @@ supabase db push
 supabase secrets set TURNSTILE_SECRET=xxx
 # verify secret key appears
 supabase secrets list
-# deploy function
-supabase functions deploy submit-planting
+# deploy function (type-checks, confirms the secret, deploys, then smoke-tests)
+scripts/deploy-function.sh
+# or run the checks without deploying
+scripts/deploy-function.sh --dry-run
 ```

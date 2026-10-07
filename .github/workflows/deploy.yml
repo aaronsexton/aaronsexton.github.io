@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy
 
 on:
   push:
@@ -27,11 +27,9 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # repository variables (Settings → Secrets and variables → Actions → Variables);
-          # all public values, embedded in the site
-          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
-          PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY }}
-      - uses: actions/configure-pages@v6
+          # stored as repository secrets, but they're public values embedded in the site
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_TURNSTILE_SITE_KEY: ${{ secrets.PUBLIC_TURNSTILE_SITE_KEY }}
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
@@ -45,3 +43,22 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v5
+
+  # runs alongside the site build; redeploying an unchanged function is harmless
+  deploy-function:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: supabase/setup-cli@v3
+        with:
+          version: latest
+      - uses: denoland/setup-deno@v2 # for the script's type check
+        with:
+          deno-version: v2.x
+      # type-checks, confirms TURNSTILE_SECRET is set, deploys, then smoke-tests
+      - run: scripts/deploy-function.sh
+        env:
+          # personal access token: Supabase dashboard → Account → Access Tokens
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
