@@ -18,8 +18,11 @@ This doc lists every configuration value and secret the project uses: where each
 
 Turnstile is Cloudflare's bot check on the submission form.
 
+**Dashboard:** [Cloudflare Turnstile](https://dash.cloudflare.com/6164219a5ca0f9a5998e563bb6782ca4/turnstile). Sign in to the Cloudflare account that owns the widget.
+
 **Created** in the Cloudflare dashboard under **Turnstile → Add widget**:
 
+- Widget name: `sprinklingseeds - planting form`
 - Hostname: `aaronsexton.github.io`
 - Widget mode: Managed
 - Pre-clearance: No
