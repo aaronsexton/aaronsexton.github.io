@@ -1,0 +1,35 @@
+---
+import '../styles/global.css';
+import PlantingForm from '../components/PlantingForm.astro';
+import PlantingMap from '../components/PlantingMap.astro';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sprinkling Seeds</title>
+    <meta name="description" content="Add your wildflower planting to the New York City map." />
+  </head>
+  <body class="bg-white font-sans text-stone-900 antialiased">
+    <main class="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
+      <PlantingForm />
+      <PlantingMap />
+    </main>
+
+    <script>
+      // Embedded via iframe: report the content height so the parent page can size the iframe.
+      // The parent listens for { type: 'sprinkling-seeds:height', height }.
+      if (window.parent !== window) {
+        const post = () =>
+          window.parent.postMessage(
+            { type: 'sprinkling-seeds:height', height: document.documentElement.scrollHeight },
+            '*',
+          );
+        new ResizeObserver(post).observe(document.body);
+        post();
+      }
+    </script>
+  </body>
+</html>

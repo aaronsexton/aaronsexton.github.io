@@ -1,0 +1,27 @@
+{
+  "name": "sprinkling-seeds",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.3.6",
+    "browser-image-compression": "^2.0.2",
+    "heic-to": "^1.6.5",
+    "maplibre-gl": "^6.13.0",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/geojson": "^7946.0.16",
+    "typescript": "^5.9.3"
+  }
+}
