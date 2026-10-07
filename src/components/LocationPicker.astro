@@ -15,7 +15,7 @@
     >
       Use my location
     </button>
-    <span id="location-status" aria-live="polite" class="text-sm text-stone-600">No pin yet</span>
+    <span id="location-status" aria-live="polite" class="text-sm text-stone-600"></span>
   </div>
 </div>
 
@@ -28,7 +28,6 @@
   const lngInput = document.getElementById('lng') as HTMLInputElement;
   const status = document.getElementById('location-status') as HTMLSpanElement;
   const useLocation = document.getElementById('use-location') as HTMLButtonElement;
-  const EMPTY_STATUS = status.textContent ?? '';
 
   const map = createMap('location-map');
   map.getCanvas().style.cursor = 'crosshair';
@@ -38,7 +37,7 @@
   function setLocation(lat: number, lng: number) {
     latInput.value = lat.toFixed(6);
     lngInput.value = lng.toFixed(6);
-    status.textContent = `Pin set at ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    status.textContent = ''; // clears "Finding your location…" or an earlier error
 
     if (!pin) {
       pin = new Marker({ color: '#16a34a', draggable: true }).setLngLat([lng, lat]).addTo(map);
@@ -77,6 +76,6 @@
     pin = null;
     latInput.value = '';
     lngInput.value = '';
-    status.textContent = EMPTY_STATUS;
+    status.textContent = '';
   });
 </script>
