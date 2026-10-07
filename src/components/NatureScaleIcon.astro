@@ -1,0 +1,28 @@
+---
+// Inclusion of Nature in Self (INS) scale icon: a dashed "you" circle and a green
+// "nature" circle that overlap more as the level rises, from 1 (apart) to 7 (one and the same).
+interface Props {
+  level: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+}
+
+const { level } = Astro.props;
+
+const R = 13;
+const CY = 16;
+// distance between the circle centers for each level
+const DISTANCE = { 1: 30, 2: 26, 3: 20, 4: 15, 5: 10, 6: 5, 7: 0 }[level];
+const selfX = 32 - DISTANCE / 2;
+const natureX = 32 + DISTANCE / 2;
+---
+
+<svg viewBox="0 0 64 32" class="h-8 w-full" aria-hidden="true">
+  <circle cx={natureX} cy={CY} r={R} class="fill-green-100 stroke-green-600" stroke-width="1.5" />
+  <circle cx={selfX} cy={CY} r={R} class="fill-none stroke-stone-500" stroke-width="1.25" stroke-dasharray="2 2" />
+  <!-- person -->
+  <g class="fill-stone-700">
+    <circle cx={selfX} cy={CY - 6} r="2.3" />
+    <rect x={selfX - 3} y={CY - 3} width="6" height="5.5" rx="2" />
+    <rect x={selfX - 2.5} y={CY + 1.5} width="2" height="5" rx="1" />
+    <rect x={selfX + 0.5} y={CY + 1.5} width="2" height="5" rx="1" />
+  </g>
+</svg>

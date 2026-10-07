@@ -16,3 +16,13 @@ supabase migration new create_plantings
 
 supabase db push
 ```
+
+### Deploy Edge Function
+
+```bash
+supabase secrets set TURNSTILE_SECRET=xxx
+# verify secret key appears
+supabase secrets list
+# deploy function
+supabase functions deploy submit-planting
+```

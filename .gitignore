@@ -1,1 +1,6 @@
 .env*
+
+# Astro
+node_modules/
+dist/
+.astro/

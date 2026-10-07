@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+/* map popups: a floating card instead of MapLibre's default box with a tip */
+.planting-popup .maplibregl-popup-content {
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(0 0 0 / 0.06);
+  box-shadow:
+    0 10px 25px -5px rgb(0 0 0 / 0.15),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  font-family: inherit;
+}
+
+.planting-popup .maplibregl-popup-tip {
+  display: none;
+}

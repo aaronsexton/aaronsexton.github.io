@@ -1,0 +1,82 @@
+<div>
+  <span class="block text-sm font-medium text-stone-800">Location</span>
+  <p class="mt-1 text-sm text-stone-600">Tap the map where you planted, then drag the pin to adjust.</p>
+
+  <input type="hidden" name="lat" id="lat" />
+  <input type="hidden" name="lng" id="lng" />
+
+  <div id="location-map" class="mt-2 h-64 w-full overflow-hidden rounded-md border border-stone-300"></div>
+
+  <div class="mt-2 flex flex-wrap items-center gap-3">
+    <button
+      type="button"
+      id="use-location"
+      class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-800 hover:bg-stone-50"
+    >
+      Use my location
+    </button>
+    <span id="location-status" aria-live="polite" class="text-sm text-stone-600">No pin yet</span>
+  </div>
+</div>
+
+<script>
+  import { Marker, type MapMouseEvent } from 'maplibre-gl';
+  import { on } from '../lib/events';
+  import { createMap } from '../lib/map';
+
+  const latInput = document.getElementById('lat') as HTMLInputElement;
+  const lngInput = document.getElementById('lng') as HTMLInputElement;
+  const status = document.getElementById('location-status') as HTMLSpanElement;
+  const useLocation = document.getElementById('use-location') as HTMLButtonElement;
+  const EMPTY_STATUS = status.textContent ?? '';
+
+  const map = createMap('location-map');
+  map.getCanvas().style.cursor = 'crosshair';
+
+  let pin: Marker | null = null;
+
+  function setLocation(lat: number, lng: number) {
+    latInput.value = lat.toFixed(6);
+    lngInput.value = lng.toFixed(6);
+    status.textContent = `Pin set at ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+    if (!pin) {
+      pin = new Marker({ color: '#16a34a', draggable: true }).setLngLat([lng, lat]).addTo(map);
+      pin.on('dragend', () => {
+        const pos = pin!.getLngLat();
+        setLocation(pos.lat, pos.lng);
+      });
+    } else {
+      pin.setLngLat([lng, lat]);
+    }
+  }
+
+  map.on('click', (e: MapMouseEvent) => setLocation(e.lngLat.lat, e.lngLat.lng));
+
+  useLocation.addEventListener('click', () => {
+    if (!navigator.geolocation) {
+      status.textContent = 'Location isn’t available here. Tap the map instead.';
+      return;
+    }
+    status.textContent = 'Finding your location…';
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setLocation(coords.latitude, coords.longitude);
+        map.flyTo({ center: [coords.longitude, coords.latitude], zoom: 17 });
+      },
+      () => {
+        status.textContent = 'Couldn’t get your location. Tap the map instead.';
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  });
+
+  // clear the pin after a successful submission
+  on('planting:added', () => {
+    pin?.remove();
+    pin = null;
+    latInput.value = '';
+    lngInput.value = '';
+    status.textContent = EMPTY_STATUS;
+  });
+</script>

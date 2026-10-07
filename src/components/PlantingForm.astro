@@ -1,0 +1,239 @@
+---
+import { TURNSTILE_SITE_KEY } from '../lib/config';
+import LocationPicker from './LocationPicker.astro';
+import NatureScaleIcon from './NatureScaleIcon.astro';
+
+const inputClass =
+  'mt-1 block w-full rounded-md border border-stone-300 px-3 py-2 text-stone-900 shadow-sm focus:border-green-600 focus:ring-2 focus:ring-green-600/30 focus:outline-none';
+const labelClass = 'block text-sm font-medium text-stone-800';
+
+// Inclusion of Nature in Self scale
+const natureLevels = [
+  { level: 1, name: 'Separate' },
+  { level: 2, name: 'Touching' },
+  { level: 3, name: 'Slight overlap' },
+  { level: 4, name: 'Partial overlap' },
+  { level: 5, name: 'Half and half' },
+  { level: 6, name: 'Mostly inside' },
+  { level: 7, name: 'Fully inside' },
+] as const;
+---
+
+<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<section aria-labelledby="form-heading" class="rounded-lg border border-stone-200 bg-white p-4 sm:p-6">
+  <h2 id="form-heading" class="text-lg font-semibold text-stone-900">Add your planting</h2>
+  <p class="mt-1 text-sm text-stone-600">Tell us where you placed your seeds.</p>
+
+  <form id="planting-form" class="mt-4 space-y-5" novalidate>
+    <div>
+      <label for="title" class={labelClass}>Name your planting</label>
+      <input id="title" name="title" type="text" required maxlength="100" placeholder="e.g. Garden on Greenwich St" class={inputClass} />
+    </div>
+
+    <fieldset>
+      <legend class={labelClass}>Seed mixture</legend>
+      <div class="mt-2 grid grid-cols-2 gap-2">
+        <label class="flex cursor-pointer items-center gap-2 rounded-md border border-stone-300 px-3 py-2 has-[:checked]:border-green-600 has-[:checked]:bg-green-50">
+          <input type="radio" name="seed_mixture" value="full_sun" required class="accent-green-600" />
+          <span class="text-sm text-stone-800">Full sun</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-2 rounded-md border border-stone-300 px-3 py-2 has-[:checked]:border-green-600 has-[:checked]:bg-green-50">
+          <input type="radio" name="seed_mixture" value="partial_sun" class="accent-green-600" />
+          <span class="text-sm text-stone-800">Partial sun</span>
+        </label>
+      </div>
+    </fieldset>
+
+    <LocationPicker />
+
+    <div>
+      <label for="photo" class={labelClass}>Photo of your site pre-seeding</label>
+      <input id="photo" name="photo" type="file" required accept="image/*,.heic,.heif" class="mt-1 block w-full text-sm text-stone-700 file:mr-3 file:rounded-md file:border-0 file:bg-stone-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-stone-800 hover:file:bg-stone-200" />
+      <div id="photo-preview" class="mt-3" hidden>
+        <div class="relative inline-block">
+          <img id="photo-preview-img" alt="Preview of your photo" class="max-h-56 rounded-md border border-stone-200 bg-stone-100" />
+          <button
+            type="button"
+            id="photo-remove"
+            aria-label="Remove photo"
+            class="absolute -top-2 -right-2 flex size-7 items-center justify-center rounded-full bg-white text-stone-700 shadow ring-1 ring-black/10 hover:bg-stone-50"
+          >
+            &times;
+          </button>
+        </div>
+        <p id="photo-status" aria-live="polite" class="mt-1 text-xs text-stone-500"></p>
+      </div>
+    </div>
+
+    <div class="sm:max-w-xs">
+      <label for="planted_on" class={labelClass}>Date planted</label>
+      <input id="planted_on" name="planted_on" type="date" required class={inputClass} />
+    </div>
+
+    <div>
+      <label for="email" class={labelClass}>
+        Want to follow up with your planting in the spring? If so, please provide your email:
+      </label>
+      <input id="email" name="email" type="email" required maxlength="254" autocomplete="email" placeholder="you@example.com" class={inputClass} />
+    </div>
+
+    <fieldset>
+      <legend class={labelClass}>
+        How connected to nature do you feel?
+      </legend>
+      <div class="mt-2 grid grid-cols-7 gap-1">
+        {natureLevels.map(({ level, name }) => (
+          <label
+            title={`${level}: ${name}`}
+            class="flex cursor-pointer flex-col items-center gap-1 rounded-md border border-stone-300 px-0.5 py-2 text-sm text-stone-800 has-[:checked]:border-green-600 has-[:checked]:bg-green-50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-green-600/30"
+          >
+            <input type="radio" name="nature_connection" value={level} required={level === 1} aria-label={`${level}: ${name}`} class="sr-only" />
+            <NatureScaleIcon level={level} />
+            <span class="font-medium">{level}</span>
+            <span class="hidden text-center text-[11px] leading-tight text-stone-500 sm:block">{name}</span>
+          </label>
+        ))}
+      </div>
+      <div class="mt-1 flex justify-between text-xs text-stone-500">
+        <span>Not at all</span><span>Very</span>
+      </div>
+    </fieldset>
+
+    <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY}></div>
+
+    <div class="flex flex-wrap items-center gap-3">
+      <button type="submit" id="submit" class="rounded-md bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60">
+        Submit planting
+      </button>
+      <p id="form-status" role="status" aria-live="polite" class="text-sm"></p>
+    </div>
+  </form>
+</section>
+
+<script>
+  import { emit } from '../lib/events';
+  import { preparePhoto } from '../lib/photo';
+  import { submitPlanting } from '../lib/submit';
+
+  const form = document.getElementById('planting-form') as HTMLFormElement;
+  const submitButton = document.getElementById('submit') as HTMLButtonElement;
+  const status = document.getElementById('form-status') as HTMLParagraphElement;
+  const photoInput = document.getElementById('photo') as HTMLInputElement;
+  const photoPreview = document.getElementById('photo-preview') as HTMLDivElement;
+  const photoPreviewImg = document.getElementById('photo-preview-img') as HTMLImageElement;
+  const photoStatus = document.getElementById('photo-status') as HTMLParagraphElement;
+  const photoRemove = document.getElementById('photo-remove') as HTMLButtonElement;
+
+  // the photo is converted (HEIC → JPEG) and compressed as soon as it's chosen, so the
+  // preview shows in every browser; the submission reuses the same converted file
+  let preparedPhoto: Promise<File> | null = null;
+  let previewUrl: string | null = null;
+
+  function setStatus(message: string, kind: 'info' | 'error' | 'success' = 'info') {
+    status.textContent = message;
+    status.className = `text-sm ${kind === 'error' ? 'text-red-700' : kind === 'success' ? 'text-green-700' : 'text-stone-600'}`;
+  }
+
+  function clearPhoto() {
+    photoInput.value = '';
+    preparedPhoto = null;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+    photoPreviewImg.removeAttribute('src');
+    photoStatus.textContent = '';
+    photoPreview.hidden = true;
+  }
+
+  photoInput.addEventListener('change', () => {
+    const file = photoInput.files?.[0];
+    if (!file) {
+      clearPhoto();
+      return;
+    }
+
+    photoPreview.hidden = false;
+    photoPreviewImg.removeAttribute('src');
+    photoStatus.textContent = 'Preparing photo…';
+
+    const job = preparePhoto(file);
+    preparedPhoto = job;
+    job.then(
+      (prepared) => {
+        if (preparedPhoto !== job) return; // another photo was chosen meanwhile
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        previewUrl = URL.createObjectURL(prepared);
+        photoPreviewImg.src = previewUrl;
+        photoStatus.textContent = '';
+      },
+      (err) => {
+        if (preparedPhoto !== job) return;
+        console.error(err);
+        clearPhoto();
+        setStatus('Couldn’t read that photo. Please try a different one.', 'error');
+      },
+    );
+  });
+
+  photoRemove.addEventListener('click', clearPhoto);
+
+  function validate(data: FormData): string | null {
+    const title = String(data.get('title') ?? '').trim();
+    if (!title) return 'Please name your planting.';
+    if (!data.get('seed_mixture')) return 'Please choose a seed mixture.';
+    if (!data.get('lat') || !data.get('lng')) return 'Please set a location: tap the map or use your location.';
+    if (!preparedPhoto) return 'Please add a photo of your site.';
+    if (!data.get('planted_on')) return 'Please enter the date you planted.';
+    const email = String(data.get('email') ?? '').trim();
+    if (!email) return 'Please enter your email.';
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return 'Please enter a valid email address.';
+    if (!data.get('nature_connection')) return 'Please choose how connected to nature you feel.';
+    if (!data.get('cf-turnstile-response')) return 'Please complete the verification check.';
+    return null;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+
+    const problem = validate(data);
+    if (problem) {
+      setStatus(problem, 'error');
+      return;
+    }
+
+    submitButton.disabled = true;
+
+    data.delete('photo');
+    if (preparedPhoto) {
+      setStatus('Preparing photo…');
+      try {
+        data.set('photo', await preparedPhoto);
+      } catch {
+        // the change handler already cleared the photo and showed the error
+        submitButton.disabled = false;
+        return;
+      }
+    }
+
+    setStatus('Submitting…');
+    const result = await submitPlanting(data);
+    submitButton.disabled = false;
+    window.turnstile?.reset(); // tokens are single-use
+
+    if (!result.ok) {
+      setStatus(result.error, 'error');
+      return;
+    }
+
+    emit('planting:added', {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [Number(data.get('lng')), Number(data.get('lat'))] },
+      properties: { id: result.id, title: String(data.get('title')).trim(), created_at: new Date().toISOString() },
+    });
+
+    form.reset(); // the location picker clears itself on 'planting:added'
+    clearPhoto();
+    setStatus('Thanks! Your planting is on the map.', 'success');
+  });
+</script>

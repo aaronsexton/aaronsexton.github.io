@@ -1,4 +1,5 @@
--- inserts a planting and its optional contact in one transaction
+-- inserts a planting and its contact in one transaction; a null email fails the
+-- planting_contacts not-null constraint and rolls back the planting too
 -- called only by the submit-planting Edge Function with the service role
 create function public.submit_planting(
   p_title text,
@@ -21,9 +22,7 @@ begin
           p_planted_on, p_nature_connection, p_photo_path)
   returning id into v_id;
 
-  if p_email is not null then
-    insert into public.planting_contacts (planting_id, email) values (v_id, p_email);
-  end if;
+  insert into public.planting_contacts (planting_id, email) values (v_id, p_email);
 
   return v_id;
 end $$;

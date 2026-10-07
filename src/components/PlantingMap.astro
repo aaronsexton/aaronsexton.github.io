@@ -1,0 +1,125 @@
+<section aria-labelledby="map-heading">
+  <h2 id="map-heading" class="sr-only">Map of plantings</h2>
+  <div class="relative">
+    <!-- fixed height: a viewport-based height would fight the iframe auto-resize -->
+    <div id="map" class="h-120 w-full overflow-hidden rounded-lg border border-stone-200 sm:h-150"></div>
+
+    <div
+      role="group"
+      aria-label="Map view"
+      class="absolute top-2.5 left-2.5 z-10 flex overflow-hidden rounded-md bg-white text-sm font-medium shadow ring-1 ring-black/10"
+    >
+      <button type="button" data-view="map" aria-pressed="true" class="view-toggle px-3 py-1.5 text-stone-700 hover:bg-stone-50 aria-pressed:bg-green-700 aria-pressed:text-white">Map</button>
+      <button type="button" data-view="satellite" aria-pressed="false" class="view-toggle px-3 py-1.5 text-stone-700 hover:bg-stone-50 aria-pressed:bg-green-700 aria-pressed:text-white">Satellite</button>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { Popup, type GeoJSONSource, type MapMouseEvent } from 'maplibre-gl';
+  import type { FeatureCollection, Point } from 'geojson';
+  import { SATELLITE_ATTRIBUTION, SATELLITE_TILES, SNAPSHOT_URL } from '../lib/config';
+  import { on, type PlantingProperties } from '../lib/events';
+  import { createMap } from '../lib/map';
+
+  type Plantings = FeatureCollection<Point, PlantingProperties>;
+
+  const plantings: Plantings = { type: 'FeatureCollection', features: [] };
+
+  // start fetching while the map style loads; a missing snapshot means no plantings yet
+  const snapshot: Promise<Plantings | null> = fetch(SNAPSHOT_URL)
+    .then((res) => (res.ok ? res.json() : null))
+    .catch(() => null);
+
+  // display only: shows existing plantings; new locations are picked in the form
+  const map = createMap('map');
+
+  function refreshSource() {
+    const source = map.getSource('plantings') as GeoJSONSource | undefined;
+    source?.setData(plantings);
+  }
+
+  type View = 'map' | 'satellite';
+  let view: View = 'map';
+  const toggles = document.querySelectorAll<HTMLButtonElement>('.view-toggle');
+
+  function setView(next: View) {
+    view = next;
+    toggles.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === next)));
+    if (map.getLayer('satellite')) {
+      map.setLayoutProperty('satellite', 'visibility', next === 'satellite' ? 'visible' : 'none');
+    }
+  }
+
+  toggles.forEach((b) => b.addEventListener('click', () => setView(b.dataset.view as View)));
+
+  map.on('load', async () => {
+    // insert imagery beneath the first label layer so street names stay readable on top
+    const firstLabelLayer = map.getStyle().layers.find((l) => l.type === 'symbol')?.id;
+    map.addSource('satellite', {
+      type: 'raster',
+      tiles: [SATELLITE_TILES],
+      tileSize: 256,
+      maxzoom: 19,
+      attribution: SATELLITE_ATTRIBUTION,
+    });
+    map.addLayer(
+      { id: 'satellite', type: 'raster', source: 'satellite', layout: { visibility: 'none' } },
+      firstLabelLayer,
+    );
+    setView(view); // apply a choice made before the map finished loading
+
+    const data = await snapshot;
+    if (data?.features) plantings.features.push(...data.features);
+
+    map.addSource('plantings', { type: 'geojson', data: plantings });
+    map.addLayer({
+      id: 'plantings',
+      type: 'circle',
+      source: 'plantings',
+      paint: {
+        'circle-radius': 7,
+        'circle-color': '#16a34a', // green-600, same as the location picker's pin
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#ffffff',
+      },
+    });
+
+    map.on('mouseenter', 'plantings', () => (map.getCanvas().style.cursor = 'pointer'));
+    map.on('mouseleave', 'plantings', () => (map.getCanvas().style.cursor = ''));
+  });
+
+  // clicking a planting opens its popup
+  map.on('click', 'plantings', (e: MapMouseEvent) => {
+    const hit = map.queryRenderedFeatures(e.point, { layers: ['plantings'] })[0];
+    if (hit) {
+      const props = hit.properties as PlantingProperties;
+      const el = document.createElement('div');
+      const title = document.createElement('p');
+      title.className = 'text-sm leading-snug font-semibold text-stone-900';
+      title.textContent = props.title; // user-submitted: text only, never HTML
+      el.append(title);
+      if (props.created_at) {
+        const date = document.createElement('p');
+        date.className = 'mt-0.5 text-xs text-stone-500';
+        date.textContent = `Added ${new Date(props.created_at).toLocaleDateString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        })}`;
+        el.append(date);
+      }
+      // styled in global.css under .planting-popup
+      new Popup({ className: 'planting-popup', closeButton: false, offset: 14, maxWidth: '240px' })
+        .setLngLat((hit.geometry as Point).coordinates as [number, number])
+        .setDOMContent(el)
+        .addTo(map);
+    }
+  });
+
+  // show the new planting right away; the next page load gets it from the snapshot
+  on('planting:added', (feature) => {
+    plantings.features.push(feature);
+    refreshSource();
+  });
+</script>
