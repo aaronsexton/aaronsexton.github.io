@@ -5,9 +5,12 @@
   <input type="hidden" name="lat" id="lat" />
   <input type="hidden" name="lng" id="lng" />
 
-  <!-- the frame is what goes fullscreen, so the map can sit inside it as a card (see global.css) -->
-  <div id="location-map-frame" class="map-frame mt-2">
-    <div id="location-map" class="h-64 w-full overflow-hidden rounded-md border border-stone-300"></div>
+  <!-- the outer div holds the map's space while the frame is fullscreen, so the page doesn't
+       jump; the frame is what goes fullscreen, with the map inside it as a card (see global.css) -->
+  <div class="mt-2 h-64">
+    <div id="location-map-frame" class="map-frame h-full">
+      <div id="location-map" class="h-full w-full overflow-hidden rounded-md border border-stone-300"></div>
+    </div>
   </div>
 
   <div class="mt-2 flex flex-wrap items-center gap-3">

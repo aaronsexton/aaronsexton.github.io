@@ -1,18 +1,21 @@
 <section aria-labelledby="map-heading">
   <h2 id="map-heading" class="sr-only">Map of plantings</h2>
-  <!-- the frame is what goes fullscreen; its child, holding the map and the view toggle, becomes the card (see global.css) -->
-  <div id="map-frame" class="map-frame">
-    <!-- fixed height: a viewport-based height would fight the iframe auto-resize -->
-    <div class="relative h-120 w-full overflow-hidden rounded-lg border border-stone-200 sm:h-150">
-      <div id="map" class="h-full w-full"></div>
+  <!-- the outer div holds the map's space while the frame is fullscreen, so the page doesn't jump.
+       Fixed height: a viewport-based height would fight the iframe auto-resize. -->
+  <div class="h-120 sm:h-150">
+    <!-- the frame is what goes fullscreen; its child, holding the map and the view toggle, becomes the card (see global.css) -->
+    <div id="map-frame" class="map-frame h-full">
+      <div class="relative h-full w-full overflow-hidden rounded-lg border border-stone-200">
+        <div id="map" class="h-full w-full"></div>
 
-      <div
-        role="group"
-        aria-label="Map view"
-        class="absolute top-2.5 left-2.5 z-10 flex overflow-hidden rounded-md bg-white text-sm font-medium shadow ring-1 ring-black/10"
-      >
-        <button type="button" data-view="map" aria-pressed="true" class="view-toggle px-3 py-1.5 text-stone-700 hover:bg-stone-50 aria-pressed:bg-green-700 aria-pressed:text-white">Map</button>
-        <button type="button" data-view="satellite" aria-pressed="false" class="view-toggle px-3 py-1.5 text-stone-700 hover:bg-stone-50 aria-pressed:bg-green-700 aria-pressed:text-white">Satellite</button>
+        <div
+          role="group"
+          aria-label="Map view"
+          class="absolute top-2.5 left-2.5 z-10 flex overflow-hidden rounded-md bg-white text-sm font-medium shadow ring-1 ring-black/10"
+        >
+          <button type="button" data-view="map" aria-pressed="true" class="view-toggle px-3 py-1.5 text-stone-700 hover:bg-stone-50 aria-pressed:bg-green-700 aria-pressed:text-white">Map</button>
+          <button type="button" data-view="satellite" aria-pressed="false" class="view-toggle px-3 py-1.5 text-stone-700 hover:bg-stone-50 aria-pressed:bg-green-700 aria-pressed:text-white">Satellite</button>
+        </div>
       </div>
     </div>
   </div>
