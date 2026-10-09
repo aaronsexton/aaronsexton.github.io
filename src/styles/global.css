@@ -48,6 +48,15 @@ html {
   box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4);
 }
 
+/* laptops and up (Tailwind's lg): a 35% bigger card, same shape */
+@media (min-width: 64rem) {
+  .map-frame:fullscreen > *,
+  .map-frame.maplibregl-pseudo-fullscreen > * {
+    max-width: 64.8rem; /* 48rem × 1.35 */
+    max-height: 50.625rem; /* 37.5rem × 1.35 */
+  }
+}
+
 /* the translucent backdrop: stone-900, light enough that the page shows through.
    Real fullscreen only: the CSS fallback (iPhone Safari) skips it, because iOS 26 Safari
    paints the area behind the status bar from the page and doesn't repaint it after
