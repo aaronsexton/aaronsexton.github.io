@@ -11,7 +11,7 @@ Add a **Custom HTML** block to the page or post and paste:
   id="sprinkling-seeds"
   src="https://aaronsexton.github.io/"
   title="Sprinkling Seeds: add your planting"
-  allow="geolocation"
+  allow="geolocation; fullscreen"
   loading="lazy"
   style="width: 100%; border: 0; height: 1400px;"
 ></iframe>
@@ -26,7 +26,7 @@ Add a **Custom HTML** block to the page or post and paste:
 
 ### What each part does
 
-- **`allow="geolocation"`:** the "Use my location" button won't work without it, because browsers block location access inside iframes unless the parent page allows it. Visitors can still tap the map to place a pin either way.
+- **`allow="geolocation; fullscreen"`:** browsers block location access and fullscreen inside iframes unless the parent page allows them. Without `geolocation`, the "Use my location" button won't work, but visitors can still tap the map to place a pin. Without `fullscreen`, the maps' fullscreen buttons only fill the iframe, not the screen.
 - **The `<script>`:** the app sends a message with its content height whenever that height changes, for example when a status message appears. This listener resizes the iframe to match, so there's no inner scrollbar. It ignores messages from any other origin.
 - **`height: 1400px`:** a starting height used until the first message arrives, and the permanent height if the script can't run.
 - **`title`:** read aloud by screen readers to describe the iframe.
@@ -42,5 +42,6 @@ Depending on the site's setup, WordPress may strip `<script>` tags from post con
 
 - **No app changes are needed for embedding.** GitHub Pages doesn't send headers that block framing, and Cloudflare Turnstile works inside iframes.
 - **CORS:** the Edge Function sees the iframe's origin (`https://aaronsexton.github.io`), not the WordPress site's, so its `ALLOWED_ORIGINS` doesn't need the WordPress domain.
-- **Scrolling:** the map uses cooperative gestures. Scrolling over it scrolls the WordPress page, and zooming needs ctrl/cmd + scroll, or two fingers on touch screens.
+- **Scrolling:** the maps use cooperative gestures. Scrolling over them scrolls the WordPress page, and zooming needs ctrl/cmd + scroll, or two fingers on touch screens. Each map's fullscreen button (bottom right) turns this off while it's open, so one finger pans the map.
+- **iPhone:** Safari on iPhone can't make a page element fullscreen, so there the fullscreen buttons fill the iframe instead of the screen.
 - **Custom domain:** if the app moves to a custom domain, update `src` and the `e.origin` check here, the function's `ALLOWED_ORIGINS`, and the Turnstile widget's hostnames.

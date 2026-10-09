@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* explicit page background: iOS 26 Safari falls back to it to color the status bar area */
+html {
+  background-color: #fff;
+}
+
 /* map popups: a floating card instead of MapLibre's default box with a tip */
 .planting-popup .maplibregl-popup-content {
   padding: 0.625rem 0.875rem;
@@ -13,4 +18,42 @@
 
 .planting-popup .maplibregl-popup-tip {
   display: none;
+}
+
+/* fullscreen maps: the frame's child becomes a card on a translucent backdrop, sized
+   like the page's main column (max-w-3xl) and the plantings map's height (sm:h-150) */
+.map-frame:fullscreen,
+.map-frame.maplibregl-pseudo-fullscreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  /* no background here: iPhone Safari tints its top bar to match a fixed element's
+     background and can leave the tint behind after exiting; see the backdrop below */
+}
+
+/* browsers put a solid black backdrop behind fullscreen elements; drop it so the page shows */
+.map-frame::backdrop {
+  background: transparent;
+}
+
+.map-frame:fullscreen > *,
+.map-frame.maplibregl-pseudo-fullscreen > * {
+  width: 100%;
+  max-width: 48rem;
+  height: 100%;
+  max-height: 37.5rem;
+  border: 0;
+  border-radius: 0.5rem; /* rounded-lg, like the form and map sections */
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4);
+}
+
+/* the translucent backdrop: stone-900, light enough that the page shows through.
+   Real fullscreen only: the CSS fallback (iPhone Safari) skips it, because iOS 26 Safari
+   paints the area behind the status bar from the page and doesn't repaint it after
+   the overlay closes, leaving a gray band at the top of the screen until reload. */
+.map-frame:fullscreen > * {
+  box-shadow:
+    0 25px 50px -12px rgb(0 0 0 / 0.4),
+    0 0 0 100vmax rgb(28 25 23 / 0.25);
 }
