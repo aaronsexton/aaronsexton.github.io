@@ -5,7 +5,10 @@
   <input type="hidden" name="lat" id="lat" />
   <input type="hidden" name="lng" id="lng" />
 
-  <div id="location-map" class="mt-2 h-64 w-full overflow-hidden rounded-md border border-stone-300"></div>
+  <!-- the frame is what goes fullscreen, so the map can sit inside it as a card (see global.css) -->
+  <div id="location-map-frame" class="map-frame mt-2">
+    <div id="location-map" class="h-64 w-full overflow-hidden rounded-md border border-stone-300"></div>
+  </div>
 
   <div class="mt-2 flex flex-wrap items-center gap-3">
     <button
@@ -22,7 +25,7 @@
 <script>
   import { Marker, type MapMouseEvent } from 'maplibre-gl';
   import { on } from '../lib/events';
-  import { createMap } from '../lib/map';
+  import { addFullscreenControl, createMap } from '../lib/map';
 
   const latInput = document.getElementById('lat') as HTMLInputElement;
   const lngInput = document.getElementById('lng') as HTMLInputElement;
@@ -31,6 +34,9 @@
 
   const map = createMap('location-map');
   map.getCanvas().style.cursor = 'crosshair';
+
+  // in fullscreen, placing and dragging the pin doesn't fight page scrolling
+  addFullscreenControl(map, document.getElementById('location-map-frame') as HTMLDivElement);
 
   let pin: Marker | null = null;
 
