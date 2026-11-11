@@ -50,7 +50,8 @@ Read:    browser ──GET──▶ CDN ──(cache miss)──▶ storage: map
 ### Notes on the database setup
 
 - **Revoked default grants:** Supabase grants `anon` and `authenticated` full privileges on new tables in `public` by default. The first migration revokes them on both tables and the view, so access doesn't depend on RLS alone. Any new table needs the same treatment: enable RLS and revoke these grants.
-- **Required columns:** every submitted field is `not null`: `planted_on`, `photo_path`, `nature_connection` (1–7), and `email` in `planting_contacts`. `submit_planting` always inserts the contact row. A missing email fails the constraint and rolls back the whole submission, so every planting has a contact.
+- **Required columns:** every required field is `not null`: `planted_on`, `photo_path`, and `nature_connection` (1–7).
+- **Optional email:** `planting_contacts.email` stays `not null`, but `submit_planting` inserts a contact row only when an email is given. A planting without a contact row has no email. This changed in `20261111201752_make_email_optional.sql`; before that, email was required.
 - **RPC privileges:** Postgres grants `execute` on new functions to `public` by default. The RPC migration revokes it. Without that, anon could call `submit_planting` directly and skip the Turnstile check.
 - **The view keeps `security_invoker = true`.** Only the service role reads it, and that role bypasses RLS.
 - **Buckets:**
@@ -113,7 +114,8 @@ For local testing, `supabase/functions/.env` (git-ignored) holds the test secret
 `scripts/test-local.sh` checks all of the following locally (30 checks, last run 2026-10-06):
 
 - [x] A valid submission returns 201. The planting, contact, and photo are stored, and the snapshot contains the point.
-- [x] Every field is required. Leaving out the title, seed mixture, location, photo, date, nature connection, or email returns 400, and so does an invalid value for any of them.
+- [x] Every field except email is required. Leaving out the title, seed mixture, location, photo, date, or nature connection returns 400, and so does an invalid value for any field, including an email that is given but invalid.
+- [ ] A submission with no email, or a blank one, returns 201 and stores no contact row. (Added with the optional-email change; not yet run.)
 - [x] A missing Turnstile token returns 403, and a GET returns 405.
 - [x] The function works with no API key header.
 - [x] The snapshot is publicly readable with no key.
