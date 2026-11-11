@@ -94,6 +94,8 @@ submit() {
 echo "Submissions"
 submit "valid submission" 201 '"id"'
 submit "valid, partial sun" 201 '"id"' "title=Back corner" "seed_mixture=partial_sun" "lat=40.711" "lng=-74.012"
+submit "valid, no email" 201 '"id"' "title=No email" drop=email
+submit "valid, blank email" 201 '"id"' "title=Blank email" "email=   "
 
 echo "Rejected submissions"
 submit "missing Turnstile token" 403 "Verification failed" drop=cf-turnstile-response
@@ -108,7 +110,6 @@ submit "missing date" 400 "date" drop=planted_on
 submit "invalid date" 400 "date" planted_on=2026-13-45
 submit "missing nature_connection" 400 "nature connection" drop=nature_connection
 submit "nature_connection out of range" 400 "nature connection" nature_connection=9
-submit "missing email" 400 "email" drop=email
 submit "invalid email" 400 "email" email=nope
 submit "missing photo" 400 "Photo is required" drop=photo
 submit "non-image photo" 400 "Photo must be" "photo=@$TMP/note.txt;type=text/plain"

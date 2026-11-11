@@ -73,9 +73,9 @@ const natureLevels = [
 
     <div>
       <label for="email" class={labelClass}>
-        Want to follow up with your planting in the spring? If so, please provide your email:
+        Want to follow up with your planting in the spring? If so, please provide your email (optional):
       </label>
-      <input id="email" name="email" type="email" required maxlength="254" autocomplete="email" placeholder="you@example.com" class={inputClass} />
+      <input id="email" name="email" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com" class={inputClass} />
     </div>
 
     <fieldset>
@@ -185,8 +185,8 @@ const natureLevels = [
     if (!preparedPhoto) return 'Please add a photo of your site.';
     if (!data.get('planted_on')) return 'Please enter the date you planted.';
     const email = String(data.get('email') ?? '').trim();
-    if (!email) return 'Please enter your email.';
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return 'Please enter a valid email address.';
+    // email is optional; check the format only when one is entered
+    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return 'Please enter a valid email address.';
     if (!data.get('nature_connection')) return 'Please choose how connected to nature you feel.';
     if (!data.get('cf-turnstile-response')) return 'Please complete the verification check.';
     return null;

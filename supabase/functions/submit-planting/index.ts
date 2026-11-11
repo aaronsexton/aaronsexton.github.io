@@ -109,7 +109,7 @@ export default {
       return fail("Verification failed", 403);
     }
 
-    // 2. Validate fields (all required)
+    // 2. Validate fields (all required except email)
     const title = optionalString(form, "title") ?? "";
     const seedMixture = optionalString(form, "seed_mixture") ?? "";
     const lat = Number(form.get("lat"));
@@ -129,7 +129,8 @@ export default {
     if (natureConnection === null || !(Number.isInteger(natureConnection) && natureConnection >= 1 && natureConnection <= 7)) {
       return fail("Invalid nature connection");
     }
-    if (email === null || email.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    // email is optional; validate it only when given
+    if (email !== null && (email.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))) {
       return fail("Invalid email");
     }
     const photo = form.get("photo");

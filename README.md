@@ -84,8 +84,8 @@ supabase link --project-ref iiimikqpfwvktlmvfvtj   # SprinklingSeeds
 
 **Database changes**
 
-- **New migration:** create it with `supabase migration new <name>`, then apply it with `supabase db push`.
-- **Edited migration** that's already applied: run `supabase db reset --linked`. This **deletes all hosted data**. Afterwards, clear `map-data/plantings.json` and the photos from Storage, because a reset leaves them in place.
+- **New migration:** create it with `supabase migration new <name>`, test it locally, back up the hosted database, check `supabase db push --dry-run`, then run `supabase db push`. CI doesn't apply migrations. Full steps: [docs/supabase-setup.md](docs/supabase-setup.md#changing-the-database).
+- **Never edit a migration that's already applied.** The only way to apply an edit is `supabase db reset --linked`, which **deletes all hosted data**. Write a new migration instead.
 
 **Edge Function**
 

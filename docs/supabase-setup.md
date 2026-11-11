@@ -35,17 +35,60 @@ supabase db push                        # applied it to the hosted project
 
 ## Changing the database
 
+The hosted database holds real submissions. **Never edit a migration that's already been applied.** `db push` skips edited files, and the only way to apply an edit is a hosted reset, which deletes all data. Make every change in a new migration file instead.
+
+CI doesn't apply migrations. [deploy.yml](../.github/workflows/deploy.yml) deploys only the site and the Edge Function, so a person runs `db push` by hand.
+
+### 1. Write and test it locally
+
+Run all commands from the repo root.
+
 ```bash
 supabase migration new <name>   # creates supabase/migrations/<timestamp>_<name>.sql
 ```
 
-After editing, apply the changes:
+Write the SQL, then apply and test it on the local stack (see [local-development.md](local-development.md)):
 
-- **Locally:** `supabase db reset` rebuilds the local database from every migration.
-- **Hosted, new migration files:** `supabase db push` applies migrations the hosted project hasn't run yet.
-- **Hosted, edited migrations:** if you edited a migration that's already been applied (this project has been editing its original migrations), `db push` skips it. Only `supabase db reset --linked` applies the change, and it **deletes all hosted data**.
+```bash
+supabase db reset               # local only: rebuilds from every migration
+scripts/test-local.sh
+```
 
-### After a hosted reset, clear Storage
+Before pushing, read the new file for `drop`, `truncate`, `delete`, `alter ... type`, or anything else that removes or rewrites data. `create or replace function` and adding a column or table are safe.
+
+### 2. Back up the hosted database
+
+The project has no point-in-time recovery, so these dumps may be the only backup. Save them **outside the repo**, because the data dump contains contributors' emails:
+
+```bash
+supabase db dump --linked -f ~/sprinkling-seeds-schema-backup-$(date +%F).sql
+supabase db dump --linked --data-only -f ~/sprinkling-seeds-data-backup-$(date +%F).sql
+```
+
+### 3. Preview the push
+
+```bash
+supabase db push --dry-run
+```
+
+It should list **only** the new migration file or files. If it lists anything else, stop and run `supabase migration list` to find out why before pushing.
+
+### 4. Apply it
+
+```bash
+supabase db push
+supabase migration list         # the new migration now shows on both Local and Remote
+```
+
+### 5. Deploy the code that depends on it
+
+Push the migration **before** merging to `main` if the Edge Function or site relies on it. CI deploys them on merge, and new code running against the old database can fail. For example, the optional-email change (`20261111201752_make_email_optional.sql`) needed the new `submit_planting` live before the function started sending null emails.
+
+### Hosted reset (deletes all data)
+
+`supabase db reset --linked` drops the hosted database and reapplies every migration. **It deletes every planting and contact.** Don't use it now that the site has real submissions. Write a new migration instead.
+
+#### After a hosted reset, clear Storage
 
 A reset doesn't touch Storage files. The map would keep showing plantings from `map-data/plantings.json` that no longer exist, and old photos would keep using quota. Delete them in the dashboard (**Storage → map-data** and **Storage → planting-photos**) or with the CLI:
 
