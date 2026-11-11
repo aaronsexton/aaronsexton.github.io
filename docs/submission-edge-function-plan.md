@@ -115,7 +115,7 @@ For local testing, `supabase/functions/.env` (git-ignored) holds the test secret
 
 - [x] A valid submission returns 201. The planting, contact, and photo are stored, and the snapshot contains the point.
 - [x] Every field except email is required. Leaving out the title, seed mixture, location, photo, date, or nature connection returns 400, and so does an invalid value for any field, including an email that is given but invalid.
-- [ ] A submission with no email, or a blank one, returns 201 and stores no contact row. (Added with the optional-email change; not yet run.)
+- [X] A submission with no email, or a blank one, returns 201 and stores no contact row. (Added with the optional-email change; not yet run.)
 - [x] A missing Turnstile token returns 403, and a GET returns 405.
 - [x] The function works with no API key header.
 - [x] The snapshot is publicly readable with no key.
