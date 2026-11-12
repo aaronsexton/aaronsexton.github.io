@@ -53,7 +53,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: supabase/setup-cli@v3
         with:
-          version: latest
+          version: 2.119.0 # pinned; upgrade deliberately after testing locally
       - uses: denoland/setup-deno@v2 # for the script's type check
         with:
           deno-version: v2.x
