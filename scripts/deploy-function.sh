@@ -43,7 +43,8 @@ if $DRY_RUN; then
 fi
 
 step "Deploying $FUNCTION"
-supabase functions deploy "$FUNCTION" --project-ref "$PROJECT_REF"
+# --yes: newer CLIs require confirmation and CI has no terminal; the target is pinned above
+supabase functions deploy "$FUNCTION" --project-ref "$PROJECT_REF" --yes
 
 step "Smoke-testing $FN_URL"
 # GET with no key: reaching the function's own 405 shows it's deployed and needs no API key
